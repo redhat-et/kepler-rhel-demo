@@ -1,0 +1,12 @@
+[Unit]
+Description=Kepler
+After=local-fs.target
+
+[Container]
+Image=quay.io/sustainable_computing_io/kepler
+PodmanArgs=--pid host --privileged
+PublishPort=8888:8888
+Volume=/sys/kernel/tracing/:/sys/kernel/tracing
+
+[Install]
+WantedBy=multi-user.target default.target

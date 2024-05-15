@@ -1,0 +1,4 @@
+- name: Setup EC2 instances
+  hosts: localhost
+  roles:
+    - role: setup_ec2

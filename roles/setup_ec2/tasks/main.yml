@@ -1,0 +1,76 @@
+- name: Get or create vpc
+  amazon.aws.ec2_vpc_net:
+    name: kepler-demo
+    cidr_block: 10.10.0.0/16
+    region: "{{ setup_ec2_aws_region }}"
+    tags:
+      environment: kepler-demo
+    tenancy: default
+    state: present
+  register: create_vpc
+
+- name: Create Internet gateway
+  amazon.aws.ec2_vpc_igw:
+    aws_region: "{{ setup_ec2_aws_region }}"
+    vpc_id: "{{ create_vpc.vpc.id }}"
+    state: present
+  register: igw
+
+- name: Get or create security_group
+  amazon.aws.ec2_security_group:
+    name: kepler-demo
+    aws_region: "{{ setup_ec2_aws_region }}"
+    description: Kepler Demo Security Group
+    vpc_id: "{{ create_vpc.vpc.id }}"
+    rules:
+      - proto: TCP
+        cidr_ip: "0.0.0.0/0"
+        from_port: 22
+        to_port: 22
+    state: present
+  register: create_sg
+
+- name: Get or create subnet
+  amazon.aws.ec2_vpc_subnet:
+    state: present
+    aws_region: "{{ setup_ec2_aws_region }}"
+    vpc_id: "{{ create_vpc.vpc.id }}"
+    cidr: 10.10.42.0/24
+    tags:
+      Name: kepler-demo
+    map_public: true
+  register: create_subnet
+
+- name: Set up public subnet route table
+  amazon.aws.ec2_vpc_route_table:
+    vpc_id: "{{ create_vpc.vpc.id }}"
+    region: "{{ setup_ec2_aws_region }}"
+    subnets:
+      - "{{ create_subnet.subnet.id }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ igw.gateway_id }}"
+    state: present
+
+- name: Gather information about RHEL 9 AMIs
+  amazon.aws.ec2_ami_info:
+    aws_region: "{{ setup_ec2_aws_region }}"
+    owners: 309956199498
+    filters:
+      architecture: x86_64
+      name: "RHEL-9.0.0_HVM-*"
+      virtualization-type: hvm
+  register: amis
+
+- name: Ensure ec2 instances are running
+  amazon.aws.ec2_instance:
+    instance_type: "{{ setup_ec2_instance_type }}"
+    image_id: "{{ amis.images[-1].image_id }}"
+    exact_count: "{{ setup_ec2_instance_count }}"
+    region: "{{ setup_ec2_aws_region }}"
+    key_name: "{{ setup_ec2_aws_key_name }}"
+    vpc_subnet_id: "{{ create_subnet.subnet.id }}"
+    security_group: "{{ create_sg.group_id }}"
+    state: present
+    tags:
+      Environment: kepler-rhel-demo

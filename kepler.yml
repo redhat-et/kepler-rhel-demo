@@ -1,0 +1,4 @@
+- name: Install Kepler on EC2 instances
+  hosts: all
+  roles:
+    - role: kepler

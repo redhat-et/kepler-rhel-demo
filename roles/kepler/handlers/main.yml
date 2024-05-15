@@ -1,0 +1,6 @@
+- name: Reload systemd
+  become: true
+  when: kepler_container.changed
+  ansible.builtin.systemd:
+    daemon_reload: true
+  listen: reload systemd
