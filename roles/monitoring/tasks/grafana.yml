@@ -1,0 +1,67 @@
+- name: Create grafana data directory
+  become: true
+  ansible.builtin.file:
+    path: /var/lib/grafana
+    state: directory
+    owner: 472
+    group: 104
+    mode: "0755"
+
+- name: Create grafana dashboards directory
+  become: true
+  ansible.builtin.file:
+    path: /var/lib/grafana/dashboards
+    state: directory
+    owner: 472
+    group: 104
+    mode: "0755"
+
+- name: Create /etc/grafana/provisioning directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/grafana/provisioning
+    state: directory
+    owner: 472
+    group: 104
+    mode: "0755"
+
+- name: Copy dashboards config
+  become: true
+  ansible.builtin.copy:
+    src: files/dashboards
+    dest: /etc/grafana/provisioning
+    owner: 472
+    group: 104
+    mode: "0644"
+
+- name: Copy datasources config
+  become: true
+  ansible.builtin.copy:
+    src: files/datasources
+    dest: /etc/grafana/provisioning
+    owner: 472
+    group: 104
+    mode: "0644"
+
+- name: Provision Dashboard
+  become: true
+  ansible.builtin.copy:
+    src: files/kepler-dashboard.json
+    dest: /var/lib/grafana/dashboards/kepler-dashboard.json
+    owner: 472
+    group: 104
+    mode: "0644"
+
+- name: Grafana container
+  become: true
+  containers.podman.podman_container:
+    name: grafana
+    state: started
+    image: docker.io/grafana/grafana:latest
+    privileged: true
+    ports:
+      - 3000:3000
+    mount:
+      - type=bind,source=/var/lib/grafana,destination=/var/lib/grafana
+      - type=bind,source=/etc/grafana/provisioning,destination=/etc/grafana/provisioning
+    restart_policy: always

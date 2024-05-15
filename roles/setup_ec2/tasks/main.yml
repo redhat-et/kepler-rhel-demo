@@ -16,7 +16,7 @@
     state: present
   register: igw
 
-- name: Get or create security_group
+- name: Get or create worker security_group
   amazon.aws.ec2_security_group:
     name: kepler-demo
     aws_region: "{{ setup_ec2_aws_region }}"
@@ -31,7 +31,27 @@
         cidr_ip: "10.10.42.0/24"
 
     state: present
-  register: create_sg
+  register: create_worker_sg
+
+- name: Get or create manager security_group
+  amazon.aws.ec2_security_group:
+    name: kepler-demo-manager
+    aws_region: "{{ setup_ec2_aws_region }}"
+    description: Kepler Demo Mgr Security Group
+    vpc_id: "{{ create_vpc.vpc.id }}"
+    rules:
+      - proto: TCP
+        cidr_ip: "0.0.0.0/0"
+        ports:
+          - 22
+      - proto: TCP
+        cidr_ip: "0.0.0.0/0"
+        ports:
+          - 3000
+      - proto: all
+        cidr_ip: "10.10.42.0/24"
+    state: present
+  register: create_manager_sg
 
 - name: Get or create subnet
   amazon.aws.ec2_vpc_subnet:
@@ -73,7 +93,7 @@
     region: "{{ setup_ec2_aws_region }}"
     key_name: "{{ setup_ec2_aws_key_name }}"
     vpc_subnet_id: "{{ create_subnet.subnet.id }}"
-    security_group: "{{ create_sg.group_id }}"
+    security_group: "{{ create_worker_sg.group_id }}"
     state: present
     tags:
       Environment: kepler-rhel-demo
@@ -88,7 +108,7 @@
     region: "{{ setup_ec2_aws_region }}"
     key_name: "{{ setup_ec2_aws_key_name }}"
     vpc_subnet_id: "{{ create_subnet.subnet.id }}"
-    security_group: "{{ create_sg.group_id }}"
+    security_group: "{{ create_manager_sg.group_id }}"
     state: present
     tags:
       Environment: kepler-rhel-demo

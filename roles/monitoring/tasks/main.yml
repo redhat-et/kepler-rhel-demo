@@ -1,22 +1,7 @@
 - name: Install Prometheus
-  ansible.builtin.import_role:
-    name: prometheus.prometheus.prometheus
-  vars:
-    prometheus_scrape_configs:
-      - job_name: "prometheus"
-        static_configs:
-          - targets:
-              - "localhost:9090"
-      - job_name: "node"
-        file_sd_configs:
-          - files:
-              - "{{ prometheus_config_dir }}/file_sd/kepler.yml"
+  ansible.builtin.include_tasks:
+    file: prom.yml
 
-- name: Create kepler file_sd config
-  become: true
-  ansible.builtin.template:
-    src: kepler.yml.j2
-    dest: "{{ prometheus_config_dir }}/file_sd/kepler.yml"
-    owner: root
-    group: prometheus
-    mode: "0640"
+- name: Install Grafana
+  ansible.builtin.include_tasks:
+    file: grafana.yml
