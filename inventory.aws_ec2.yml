@@ -6,3 +6,7 @@ regions:
 filters:
   tag:Environment: kepler-rhel-demo
   instance-state-name: running
+
+groups:
+  workers: "'worker' in tags.Group"
+  managers: "'managers' in tags.Group"

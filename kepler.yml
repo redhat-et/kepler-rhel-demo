@@ -1,4 +1,11 @@
 - name: Install Kepler on EC2 instances
-  hosts: all
+  hosts: workers
   roles:
+    - role: podman
     - role: kepler
+
+- name: Install Monitoring Stack
+  hosts: managers
+  roles:
+    - role: podman
+    - role: monitoring

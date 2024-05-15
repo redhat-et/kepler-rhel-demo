@@ -1,9 +1,3 @@
-- name: Ensure podman is installed
-  become: true
-  ansible.builtin.yum:
-    name: podman
-    state: present
-
 - name: Ensure the container file is present
   become: true
   ansible.builtin.copy:
@@ -14,12 +8,8 @@
     mode: u=rw,g=r,o=r
   notify: reload systemd
 
-- name: Reload systemd
-  become: true
-  ansible.builtin.shell:
-    cmd: systemctl daemon-reload
-
 - name: Start the Kepler container
   become: true
-  ansible.builtin.shell:
-    cmd: systemctl start kepler
+  ansible.builtin.systemd:
+    name: kepler
+    state: started

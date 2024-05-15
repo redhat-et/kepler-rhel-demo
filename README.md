@@ -18,7 +18,9 @@ deploy to as extra vars.
  ansible-playbook -vv --extra-vars "setup_ec2_aws_region=eu-west-1" --extra-vars "setup_ec2_aws_key_name=dave-kepler-demo"  deploy-ec2.yml
 ```
 
-Deploy Kepler to the VMs, passing the private key for your AWS keypar
+> Note: Ensure your AWS region is set correctly in the `inventory.aws_ec2.yml` file.
+
+Deploy Kepler to the VMs, passing the private key for your AWS keypair
 as the `--private-key` argument.
 
 ```bash

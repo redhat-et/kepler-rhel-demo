@@ -1,0 +1,5 @@
+- name: Ensure podman is installed
+  become: true
+  ansible.builtin.yum:
+    name: podman
+    state: present

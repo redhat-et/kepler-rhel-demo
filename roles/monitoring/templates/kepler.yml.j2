@@ -1,0 +1,6 @@
+-  targets:
+{% for host in groups['workers'] %}
+      - {{ hostvars[host]['ansible_facts']['eth0']['ipv4']['address'] }}:8888
+{% endfor %}
+   labels:
+     job: kepler

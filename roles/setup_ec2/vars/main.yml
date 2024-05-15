@@ -1,4 +1,5 @@
 setup_ec2_aws_region: us-east-1
-setup_ec2_instance_type: m5zn.metal
-setup_ec2_instance_count: 3
+setup_ec2_worker_instance_type: m5zn.metal
+setup_ec2_worker_instance_count: 3
+setup_ec2_manager_instance_type: m5.large
 setup_ec2_aws_key_name: kepler-demo
