@@ -3,11 +3,12 @@ Description=Kepler
 After=local-fs.target
 
 [Container]
-Image=quay.io/sustainable_computing_io/kepler
+Image=quay.io/sustainable_computing_io/kepler:latest
 PodmanArgs=--pid host --privileged
 PublishPort=8888:8888
 Volume=/sys/kernel/tracing/:/sys/kernel/tracing
-Environment=EXPOSE_PROCESS_METRICS=true
+Environment=ENABLE_PROCESS_METRICS=true
+AutoUpdate=registry
 
 [Install]
 WantedBy=multi-user.target default.target

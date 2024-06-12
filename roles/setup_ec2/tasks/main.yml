@@ -99,6 +99,18 @@
       Environment: kepler-rhel-demo
       Group: workers
       Name: kepler-worker
+  register: ec2_instances
+
+- block:
+    - name: Set name tag for AWS instances
+      amazon.aws.ec2_tag:
+        region: "{{ setup_ec2_aws_region }}"
+        resource: "{{ item.1.instance_id }}"
+        tags:
+          Name: "kepler-worker-{{ '%02d' | format(item.0 + 1) }}"
+      with_indexed_items: "{{ ec2_instances.instances }}"
+      loop_control:
+        label: "{{ item.1.instance_id }} - kepler-worker-{{ '%02d' | format(item.0 + 1) }}"
 
 - name: Manager ec2 instance
   amazon.aws.ec2_instance:

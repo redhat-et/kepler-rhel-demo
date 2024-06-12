@@ -1,0 +1,76 @@
+- name: Ensure requirements in place
+  package:
+    name:
+      - libguestfs-tools
+      - python3-libvirt
+      - python3-lxml
+      - qemu-kvm
+    state: present
+  become: true
+
+- name: Ensure libvirt services are started
+  ansible.builtin.systemd:
+    name: "{{ item }}.socket"
+    state: started
+    enabled: yes
+  loop:
+    - virtqemud
+    - virtqemud-ro
+    - virtqemud-admin
+    - virtnetworkd
+    - virtnetworkd-ro
+    - virtnetworkd-admin
+    - virtsecretd
+    - virtsecretd-ro
+    - virtsecretd-admin
+    - virtstoraged
+    - virtstoraged-ro
+    - virtstoraged-admin
+  become: true
+
+- name: Get VMs list
+  community.libvirt.virt:
+    command: list_vms
+  register: existing_vms
+  changed_when: false
+  become: true
+
+- name: Create VM if not exists
+  become: true
+  when: "'wordpress' not in existing_vms.list_vms"
+  block:
+    - name: Make tmpdir
+      ansible.builtin.file:
+        path: "/tmp/bitnami-wordpress"
+        state: directory
+    - name: Download base image
+      ansible.builtin.get_url:
+        url: "https://downloads.bitnami.com/files/stacks/wordpresspro/6/bitnami-wordpresspro-6.5.4-r2-debian-12-amd64.ova"
+        dest: "/tmp/bitnami-wordpress/bitnami-wordpresspro-6.5.4-r2-debian-12-amd64.ova"
+    - name: Extract the OVA image
+      ansible.builtin.command: |
+        tar -xvf /tmp/bitnami-wordpress/bitnami-wordpresspro-6.5.4-r2-debian-12-amd64.ova -C /tmp/bitnami-wordpress/
+    - name: Convert the image to QCOW2 format
+      ansible.builtin.command: |
+        qemu-img convert -f vmdk -O qcow2 /tmp/bitnami-wordpress/common-wordpresspro-6-6.5.4-r2-debian-12-amd64-disk-0.vmdk /tmp/bitnami-wordpress/bitnami-wordpresspro-6.5.4-r2-debian-12-amd64.qcow2
+    - name: Copy the image to the libvirt pool directory
+      ansible.builtin.command:
+        cmd: "mv /tmp/bitnami-wordpress/bitnami-wordpresspro-6.5.4-r2-debian-12-amd64.qcow2 {{ libvirt_pool_dir }}/wordpress.qcow2"
+    - name: Define vm
+      community.libvirt.virt:
+        command: define
+        xml: "{{ lookup('template', 'wordpress.xml.j2') }}"
+      when: "wordpress not in existing_vms.list_vms"
+    - name: Ensure VM is started
+      community.libvirt.virt:
+        name: "wordpress"
+        state: running
+      register: vm_start_results
+      until: "vm_start_results is success"
+      retries: 15
+      delay: 2
+    - name: Ensure temporary file is deleted
+      file:
+        path: "/tmp/bitnami-wordpress"
+        state: absent
+      when: cleanup_tmp | bool

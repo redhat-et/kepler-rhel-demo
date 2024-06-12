@@ -1,0 +1,6 @@
+- name: Play the K8s YAML with podman
+  containers.podman.podman_play:
+    kube_file: https://raw.githubusercontent.com/GoogleCloudPlatform/microservices-demo/v0.10.0/release/kubernetes-manifests.yaml
+    recreate: false
+    state: started
+  become: true

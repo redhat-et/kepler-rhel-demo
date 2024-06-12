@@ -1,3 +1,5 @@
 collections:
   - name: containers.podman
   - name: prometheus.prometheus
+  - name: middleware_automation.quarkus
+  - name: community.libvirt

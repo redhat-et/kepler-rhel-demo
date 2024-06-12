@@ -26,3 +26,9 @@ as the `--private-key` argument.
 ```bash
  ansible-playbook -i inventory.aws_ec2.yml -u ec2-user --private-key ~/.ssh/dave-kepler-demo.pem kepler.yml
 ```
+
+And then finally deploy some workloads to be monitored:
+
+```bash
+ ansible-playbook -i inventory.aws_ec2.yml -u ec2-user --private-key ~/.ssh/dave-kepler-demo.pem workloads.yml
+```

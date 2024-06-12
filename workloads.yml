@@ -1,0 +1,32 @@
+- name: Install Microservice App on Worker-1
+  hosts: kepler-worker-01
+  roles:
+    - role: podman
+    - role: hipster-shop
+
+- name: Install VM Application on Worker-2
+  hosts: kepler-worker-02
+  roles:
+    - role: wordpress
+
+- name: Install quarkus-petclinic on Worker-3
+  hosts: kepler-worker-03
+  gather_facts: true
+  collections:
+    - middleware_automation.quarkus
+  become: true
+  vars:
+    quarkus_app_repo_url: https://github.com/redhat-developer-demos/quarkus-petclinic.git
+    app_name: quarkus-petclinic
+    app_workdir: /root/quarkus-petclinic
+    quarkus_path_to_folder_to_deploy: /opt/quarkus-petclinic
+  pre_tasks:
+    - name: "Build the Quarkus from {{ quarkus_app_repo_url }}."
+      ansible.builtin.include_role:
+        name: quarkus
+        tasks_from: build.yml
+  tasks:
+    - name: "Deploy the Quarkus application."
+      ansible.builtin.include_role:
+        name: quarkus
+        tasks_from: deploy.yml
